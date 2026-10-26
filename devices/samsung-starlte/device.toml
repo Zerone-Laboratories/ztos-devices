@@ -1,0 +1,34 @@
+# The Galaxy S9 (SM-G960, starlte): ztOS's own port, the first native entry.
+# Its device layer (kernel, modules, firmware, ztOSIAL manifest and backends)
+# lives in the device repository; the boot image is built there by
+# scripts/build-boot.sh (uniLoader, a TWRP-shaped header), not by mkbootimg.
+
+[device]
+codename = "samsung-starlte"
+name = "Samsung Galaxy S9"
+arch = "aarch64"
+status = "tested"
+origin = "native"
+
+[source.native]
+repo = "https://github.com/Zerone-Laboratories/ztos-device-samsung-starlte"
+commit = ""
+
+[kernel]
+mainline = true
+version = "7.1.0"
+soc = "exynos9810"
+gpu_driver = "panfrost"
+
+[boot]
+flash_method = "twrp"           # boot image to BOOT and root to USERDATA through TWRP (installer/ztos)
+rootfs_target = "userdata"
+
+[ztmetro]
+scale = 2.5
+vibrator = "auto"
+rotation = 0
+
+[android]
+binder = "binderfs"
+gralloc = "gbm"
