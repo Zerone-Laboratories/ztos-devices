@@ -1,0 +1,52 @@
+[device]
+codename = "samsung-j5"
+name = "Samsung Galaxy J5 2015"
+arch = "aarch64"
+status = "untested"
+origin = "pmos"
+
+[source.pmos]
+pmaports_commit = "dfb010f5b9885d185d089b6e1e493030062f9756"
+device_pkg = "device-samsung-j5"
+kernel_pkg = "linux-postmarketos-qcom-msm8916"
+firmware_pkgs = ["firmware-qcom-adreno-a300", "firmware-samsung-j5-wcnss-nv"]
+category = "archived"
+
+[kernel]
+mainline = true
+version = "6.12.1"
+artifacts_sha256 = "ebde63ff71bebfbb30372ad8823b4c63dc4268553592615de685fff456876de9"
+soc = "msm8916"
+gpu_driver = "freedreno"
+
+[boot]
+flash_method = "fastboot"
+bootimg_header_version = 0
+kernel_offset = "0x00080000"
+ramdisk_offset = "0x02000000"
+tags_offset = "0x01e00000"
+base = "0x80000000"
+second_offset = "0x00f00000"
+pagesize = 2048
+dtb = "qcom/msm8916-samsung-j5"
+cmdline = "earlycon console=ttyMSM0,115200"
+append_dtb = true
+qcdt = false
+sparse = true
+rootfs_target = "userdata"
+# disabled in the mainline dtb: the touchscreen's bus, and the SM5703 PMIC's (touch power)
+dtb_enable = ["/soc@0/i2c@78b9000", "/soc@0/i2c@78ba000"]
+defaulted = ["bootimg_header_version"]
+
+[userspace]
+daemons = ["rmtfs", "pd-mapper", "tqftpserv"]
+
+[ztmetro]
+scale = 1.67
+vibrator = "auto"
+rotation = 0
+
+[verified]
+date = ""
+by = ""
+checklist = {}

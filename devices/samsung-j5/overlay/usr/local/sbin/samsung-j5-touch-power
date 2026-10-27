@@ -1,0 +1,27 @@
+#!/usr/bin/python3 -I
+# The J5's touchscreen (Imagis IST3038C, i2c-2 0x50) is powered by LDO3 of the
+# SM5703 PMIC (0x49 on blsp_i2c6), which mainline has no driver for: switch it
+# on at 3.0 V, as the stock kernel does, then let the touch driver probe again.
+# Registers from mainline's sm5703-regulator: LDO3 is 0x1C, bit 3 enables it,
+# bits 0-2 pick the voltage (4 = 3.0 V).
+import fcntl, glob, os, time
+
+def bus_of(node):
+    for b in glob.glob("/sys/bus/i2c/devices/i2c-*"):
+        if os.path.realpath(b + "/..").endswith(node):
+            return int(b.rsplit("-", 1)[1])
+    raise SystemExit(f"no i2c bus for {node}")
+
+fd = os.open(f"/dev/i2c-{bus_of('78ba000.i2c')}", os.O_RDWR)
+fcntl.ioctl(fd, 0x0706, 0x49)                  # I2C_SLAVE_FORCE
+os.write(fd, bytes([0x1C]))
+v = os.read(fd, 1)[0]
+os.write(fd, bytes([0x1C, (v & ~0x0F) | 0x08 | 0x04]))
+time.sleep(0.3)
+for dev in glob.glob("/sys/bus/i2c/devices/*-0050"):
+    if not os.path.exists(dev + "/driver"):
+        try:
+            with open("/sys/bus/i2c/drivers/imagis-touchscreen/bind", "w") as f:
+                f.write(os.path.basename(dev))
+        except OSError as e:
+            print(f"bind {dev}: {e}")

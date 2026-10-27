@@ -1,0 +1,11 @@
+[Unit]
+Description=Power the J5's touchscreen (SM5703 LDO3)
+Before=greetd.service
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/samsung-j5-touch-power
+
+[Install]
+WantedBy=multi-user.target
