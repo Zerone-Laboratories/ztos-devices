@@ -1,0 +1,12 @@
+[Unit]
+Description=Qualcomm remotefs service (the modem and audio DSP storage)
+Before=NetworkManager.service ModemManager.service
+After=msm-firmware-loader.service
+
+[Service]
+ExecStart=/usr/local/bin/rmtfs -r -P -s
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

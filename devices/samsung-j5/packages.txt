@@ -1,0 +1,2 @@
+# from Arch Linux ARM, on top of the ztOS GSI
+bluez bluez-utils

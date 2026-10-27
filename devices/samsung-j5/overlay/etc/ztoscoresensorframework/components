@@ -1,0 +1,9 @@
+# ztOSCoreSensorFramework, the Galaxy J5's pieces (the S9's list names the S9's
+# drivers and services). kind|id|argument|title, in the order they are started.
+module|sm5703_fuelgauge|sm5703_fuelgauge|Battery gauge
+module|sm5703_vibrator|sm5703_vibrator|Vibration motor
+unit|rmtfs.service||Modem storage
+unit|bluetooth.service||Bluetooth
+unit|ztoscorenetworking.service||ztOSCoreNetworking: calls, messages, data
+unit|zrnperfd.service||Performance
+session|ztapps||App list

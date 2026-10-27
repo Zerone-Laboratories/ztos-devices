@@ -2,7 +2,7 @@
 codename = "samsung-j5"
 name = "Samsung Galaxy J5 2015"
 arch = "aarch64"
-status = "untested"
+status = "working"
 origin = "pmos"
 
 [source.pmos]
@@ -35,11 +35,28 @@ qcdt = false
 sparse = true
 rootfs_target = "userdata"
 # disabled in the mainline dtb: the touchscreen's bus, and the SM5703 PMIC's (touch power)
-dtb_enable = ["/soc@0/i2c@78b9000", "/soc@0/i2c@78ba000"]
+# and blsp_i2c4 (the SM5703 fuel gauge at 0x71)
+dtb_enable = ["/soc@0/i2c@78b9000", "/soc@0/i2c@78ba000", "/soc@0/i2c@78b8000"]
+# [node, property, fdtput type, value]. Phandles are this kernel's (6.12.1):
+# 0x9c is the SM5703 MUIC (/i2c-muic/extcon@25)
+dtb_set = [
+	# the J500N0 modem image spans 90 MiB (mainline reserves 88): q6v5-mss
+	# refuses it with "segment outside memory range"
+	["/reserved-memory/mpss@86800000", "reg", "x", "0 0x86800000 0 0x5a00000"],
+	# battery: the overlay's sm5703_fuelgauge.ko
+	["/soc@0/i2c@78b8000/fuel-gauge@71", "compatible", "s", "siliconmitus,sm5703-fuel-gauge"],
+	["/soc@0/i2c@78b8000/fuel-gauge@71", "reg", "x", "0x71"],
+	["/soc@0/i2c@78b8000/fuel-gauge@71", "extcon", "x", "0x9c"],
+	# the motor is on the SM5703's LDO2: the overlay's sm5703_vibrator.ko
+	["/soc@0/i2c@78ba000/vibrator@49", "compatible", "s", "siliconmitus,sm5703-vibrator"],
+	["/soc@0/i2c@78ba000/vibrator@49", "reg", "x", "0x49"],
+	# the name ztMETRO's torch looks for
+	["/led-controller/led", "label", "s", "white:torch"],
+]
 defaulted = ["bootimg_header_version"]
 
 [userspace]
-daemons = ["rmtfs", "pd-mapper", "tqftpserv"]
+daemons = ["rmtfs", "bluetooth", "msm-firmware-loader"]
 
 [ztmetro]
 scale = 1.67
