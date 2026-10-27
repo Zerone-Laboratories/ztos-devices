@@ -8,7 +8,8 @@ Mainline has no SM5703 drivers.
   SM5703 fuel gauge (blsp_i2c4, 0x71), and `usb` online from the MUIC (extcon).
 - `sm5703_vibrator.c`: the motor, which is on the SM5703's LDO2. Exposed as an input
   force-feedback device, which is what ztMETRO looks for.
-- `panel-ams497hy01-backlight.patch`: brightness for the panel, as a backlight device. It
+- `panel-ams497hy01-backlight.patch`: brightness for the panel, as a backlight device, and
+  display off sent while video still runs (no lines on the way down). Brightness
   works through AID (the share of each frame the OLEDs are dark), so the panel's
   calibrated gamma is left alone. ztconflo also puts this module into the reused
   initramfs, which loads the panel early.

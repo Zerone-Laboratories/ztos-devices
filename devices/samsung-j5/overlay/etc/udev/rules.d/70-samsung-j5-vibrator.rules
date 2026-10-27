@@ -1,0 +1,2 @@
+# ztMETRO plays haptics on the motor itself (force feedback), as the session user
+SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="sm5703-vibrator", MODE="0666"
