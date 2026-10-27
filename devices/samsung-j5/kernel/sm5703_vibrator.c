@@ -16,12 +16,22 @@
 #define SM5703_REG_LDO2		0x1b
 #define SM5703_LDO_EN		BIT(3)
 #define SM5703_LDO_VSEL		GENMASK(2, 0)
-#define SM5703_LDO_3V0		4
+#define SM5703_LDO_MAX		7
+
+/*
+ * A plain motor that needs tens of milliseconds to get up to speed: the
+ * shell's ticks (7 to 38 ms, made for the S9) stopped it before it was felt.
+ * Every pulse runs at least this long, at the LDO's top step (measured: the
+ * motor shakes ~15 % more there than at 3.0 V, and starts sooner).
+ */
+#define SM5703_MIN_ON_MS	40
 
 struct sm5703_vib {
 	struct i2c_client *client;
 	struct input_dev *input;
 	struct work_struct work;
+	struct delayed_work stop;
+	unsigned long on_since;
 	bool on;
 };
 
@@ -34,7 +44,7 @@ static void sm5703_vib_work(struct work_struct *work)
 		return;
 	val &= ~(SM5703_LDO_EN | SM5703_LDO_VSEL);
 	if (vib->on)
-		val |= SM5703_LDO_EN | SM5703_LDO_3V0;
+		val |= SM5703_LDO_EN | SM5703_LDO_MAX;
 	i2c_smbus_write_byte_data(vib->client, SM5703_REG_LDO2, val);
 }
 
@@ -42,16 +52,35 @@ static int sm5703_vib_play(struct input_dev *input, void *data,
 			   struct ff_effect *effect)
 {
 	struct sm5703_vib *vib = input_get_drvdata(input);
+	unsigned long min_off;
 
-	vib->on = effect->u.rumble.strong_magnitude || effect->u.rumble.weak_magnitude;
-	schedule_work(&vib->work);
+	if (effect->u.rumble.strong_magnitude || effect->u.rumble.weak_magnitude) {
+		cancel_delayed_work(&vib->stop);
+		if (!vib->on)
+			vib->on_since = jiffies;
+		vib->on = true;
+		schedule_work(&vib->work);
+		return 0;
+	}
+	/* a stop: held back until the motor has run its minimum */
+	min_off = vib->on_since + msecs_to_jiffies(SM5703_MIN_ON_MS);
+	schedule_delayed_work(&vib->stop, time_before(jiffies, min_off) ? min_off - jiffies : 0);
 	return 0;
+}
+
+static void sm5703_vib_stop(struct work_struct *work)
+{
+	struct sm5703_vib *vib = container_of(to_delayed_work(work), struct sm5703_vib, stop);
+
+	vib->on = false;
+	sm5703_vib_work(&vib->work);
 }
 
 static void sm5703_vib_close(struct input_dev *input)
 {
 	struct sm5703_vib *vib = input_get_drvdata(input);
 
+	cancel_delayed_work_sync(&vib->stop);
 	cancel_work_sync(&vib->work);
 	vib->on = false;
 	sm5703_vib_work(&vib->work);
@@ -68,6 +97,7 @@ static int sm5703_vib_probe(struct i2c_client *client)
 		return -ENOMEM;
 	vib->client = client;
 	INIT_WORK(&vib->work, sm5703_vib_work);
+	INIT_DELAYED_WORK(&vib->stop, sm5703_vib_stop);
 
 	ret = i2c_smbus_read_byte_data(client, SM5703_REG_LDO2);
 	if (ret < 0)
