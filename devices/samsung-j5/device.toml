@@ -56,7 +56,10 @@ dtb_set = [
 defaulted = ["bootimg_header_version"]
 
 [userspace]
-daemons = ["rmtfs", "bluetooth", "msm-firmware-loader"]
+# ztos-touchkeyd: the recents and back touch keys, a TC360 on its own
+# bit-banged I2C bus, read from userspace (ztOSMobile ztmetro/touchkeyd).
+# With them and the home key, ztMETRO leaves out its nav bar
+daemons = ["rmtfs", "bluetooth", "msm-firmware-loader", "ztos-touchkeyd"]
 
 [ztmetro]
 scale = 1.67
