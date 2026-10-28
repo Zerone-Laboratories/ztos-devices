@@ -2,7 +2,7 @@
 codename = "samsung-j5"
 name = "Samsung Galaxy J5 2015"
 arch = "aarch64"
-status = "working"
+status = "tested"
 origin = "pmos"
 
 [source.pmos]
@@ -59,7 +59,9 @@ defaulted = ["bootimg_header_version"]
 # ztos-touchkeyd: the recents and back touch keys, a TC360 on its own
 # bit-banged I2C bus, read from userspace (ztOSMobile ztmetro/touchkeyd).
 # With them and the home key, ztMETRO leaves out its nav bar
-daemons = ["rmtfs", "bluetooth", "msm-firmware-loader", "ztos-touchkeyd"]
+# samsung-j5-touch-power: the touchscreen's supply (SM5703 LDO), on before
+# the panel's touch driver; without it there is no touch
+daemons = ["rmtfs", "bluetooth", "msm-firmware-loader", "ztos-touchkeyd", "samsung-j5-touch-power"]
 
 [ztmetro]
 scale = 1.67
